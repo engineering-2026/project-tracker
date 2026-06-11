@@ -254,6 +254,11 @@ tr:hover td{background:#fafafa;}
         <div class="sg">
           <div class="sl">GID (Tab Work Tracer)</div>
           <input class="si2" id="sh-gid" placeholder="1885906887">
+        </div>
+        <div class="sg">
+          <div class="sl">GID (Tab Budget per Kode)</div>
+          <input class="si2" id="sh-bgid" placeholder="274900085">
+          <div class="sh">GID sheet 💰 Budget per Kode dari URL saat buka tab tersebut</div>
           <div class="sh">GID dari URL: ...edit?gid=<b>GID_DI_SINI</b></div>
         </div>
         <div class="sg">
@@ -377,7 +382,8 @@ function csvToProjects(csv){
     const idVal=m.id!==undefined?r[m.id]||'':'';
     if(!idVal||!/^\d+$/.test(idVal.trim()))continue;
     const prgRaw=m.prg!==undefined?parseFloat(r[m.prg])||0:0;
-    const prg=prgRaw>1?Math.round(prgRaw*10)/10:Math.round(prgRaw*100*10)/10;
+    const prgParsed=parseFloat((r[m.prg]||'').replace(/[^0-9.-]/g,''))||0;
+    const prg=prgParsed>1?Math.round(prgParsed*10)/10:Math.round(prgParsed*1000)/10;
     let bt=(m.bt!==undefined?r[m.bt]||'':'').trim();
     if(bt==='Opex.PM B1')bt='OPEX-PM.B1';
     const sec=m.sec2!==undefined?r[m.sec2]||r[m.sec]||'':m.sec!==undefined?r[m.sec]||'':'';
@@ -392,16 +398,81 @@ function csvToProjects(csv){
       prg,
       msd:m.msd!==undefined?parseInt(r[m.msd])||0:0,
       bt,
-      ang:m.ang!==undefined?parseFloat(r[m.ang])||0:0,
-      rel:m.rel!==undefined?parseFloat(r[m.rel])||0:0,
+      ang:m.ang!==undefined?parseFloat((r[m.ang]||'').replace(/[^0-9.-]/g,''))||0:0,
+      rel:m.rel!==undefined?parseFloat((r[m.rel]||'').replace(/[^0-9.-]/g,''))||0:0,
     });
   }
   return data;
 }
 
+
+// ─── BUDGET SHEET FETCHER ─────────────────────────────────────────────────────
+async function fetchBudgetSheet(){
+  const sid=localStorage.getItem('sh_id')||CFG.sheetId;
+  const bgid='274900085';
+  const urls=[
+    `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&gid=${bgid}`,
+    `https://docs.google.com/spreadsheets/d/e/2PACX-1vRqMVVwDUcGpmRNlfdg0xK_Jf_XjqXtK1Cpo87WtH5E6An4bF1i8_xL-RhaHsaSiw/pub?gid=${bgid}&single=true&output=csv`
+  ];
+  for(const url of urls){
+    try{
+      const csv=await fetchCSV(url,8000);
+      const rows=csv.split('\n').filter(r=>r.trim()).map(parseRow);
+      // Find header row
+      let hdrIdx=-1;const cm={};
+      for(let i=0;i<Math.min(rows.length,12);i++){
+        const r=rows[i];
+        const hasBCode=r.some(c=>/budget.*code|kode.*budget/i.test(c));
+        const hasAngg=r.some(c=>/anggaran/i.test(c));
+        if(hasBCode&&hasAngg){
+          hdrIdx=i;
+          r.forEach((h,idx)=>{
+            const hl=h.toLowerCase().replace(/\n/g,' ').trim();
+            if(/budget.*code|kode/i.test(hl))cm.code=idx;
+            if(/^type$|^tipe$/i.test(hl))cm.type=idx;
+            if(/anggaran/i.test(hl)&&!cm.angg)cm.angg=idx;
+            if(/total.*real|realisasi/i.test(hl)&&!cm.real)cm.real=idx;
+            if(/sisa/i.test(hl))cm.sisa=idx;
+            if(/%.*terpakai|terpakai/i.test(hl))cm.pct=idx;
+            if(/status/i.test(hl))cm.sts=idx;
+            if(/#|jumlah.*proj|proj/i.test(hl))cm.cnt=idx;
+          });
+          break;
+        }
+      }
+      if(hdrIdx<0){console.warn('[WT] Budget header not found');continue;}
+      const budget={};
+      for(let i=hdrIdx+1;i<rows.length;i++){
+        const r=rows[i];
+        const code=(cm.code!==undefined?r[cm.code]||'':'').trim();
+        if(!code||!/^(CAPEX|OPEX)/.test(code))continue;
+        if(/SUBTOTAL|GRAND|TOTAL/i.test(code))continue;
+        const angg=parseFloat((cm.angg!==undefined?r[cm.angg]||'':'').replace(/[^0-9.-]/g,''))||0;
+        const real=parseFloat((cm.real!==undefined?r[cm.real]||'':'').replace(/[^0-9.-]/g,''))||0;
+        const cnt=parseInt(cm.cnt!==undefined?r[cm.cnt]||0:0)||0;
+        budget[code]={a:angg,r:real,c:cnt};
+      }
+      if(Object.keys(budget).length>5){
+        console.log('[WT] Budget sheet loaded:',Object.keys(budget).length,'codes');
+        return budget;
+      }
+    }catch(e){console.warn('[WT] Budget sheet:',e.message);}
+  }
+  return null;
+}
 // ─── DATA LOADING ─────────────────────────────────────────────────────────────
 function loadEmbed(){
-  P=EMB.p||[];M=EMB.m||{};B=EMB.b||{};
+  P=EMB.p||[];M=EMB.m||{};
+  // Compute budget pool from embedded project data (pool-based)
+  B={};
+  (EMB.p||[]).forEach(p=>{
+    const c=p.bt;if(!c||c==='PIC'||!c.trim())return;
+    if(!B[c])B[c]={a:0,r:0,c:0};
+    if(!B[c].a&&p.ang>0)B[c].a=p.ang;
+    B[c].r+=p.rel;B[c].c++;
+  });
+  // Override with EMB.b if available (has correct pool values)
+  if(EMB.b&&Object.keys(EMB.b).length>0)B=EMB.b;
 }
 
 function computeB(){
@@ -457,6 +528,13 @@ async function trySheets(){
         setSyncStatus('live','Live Sheets · '+t);
         document.getElementById('ai-count').textContent=P.length;
         console.log('[WT] Loaded',P.length,'projects from Sheets');
+        // Also fetch budget sheet
+        fetchBudgetSheet().then(bgt=>{{
+          if(bgt&&Object.keys(bgt).length>0){{
+            B=bgt;
+            if(document.getElementById('vw-bg').classList.contains('on'))rBG();
+          }}
+        }}).catch(()=>{{}});
         return true;
       }
     }catch(e){console.warn('[WT] URL failed:',url.split('/')[6]?.substring(0,20),e.message);}
@@ -690,6 +768,8 @@ function saveSt(){
   const gk=document.getElementById('gkey').value.trim();
   if(sid)localStorage.setItem('sh_id',sid);
   if(sgid)localStorage.setItem('sh_gid',sgid);
+  const bgid=document.getElementById('sh-bgid')?.value.trim();
+  if(bgid)localStorage.setItem('sh_bgid',bgid);
   if(gk)localStorage.setItem('gk',gk);
   document.getElementById('stmsg').innerHTML='✅ Tersimpan! <a href="#" onclick="reload();return false;">Reload data →</a>';
   if(document.getElementById('vw-ai').classList.contains('on'))initAI();}
@@ -745,6 +825,7 @@ window.addEventListener('DOMContentLoaded',async()=>{
   // 2. Fill settings
   document.getElementById('sh-id').value=localStorage.getItem('sh_id')||CFG.sheetId;
   document.getElementById('sh-gid').value=localStorage.getItem('sh_gid')||CFG.gid;
+  const bgidEl=document.getElementById('sh-bgid');if(bgidEl)bgidEl.value=localStorage.getItem('sh_bgid')||'274900085';
   document.getElementById('gkey').value=localStorage.getItem('gk')||'';
   // 3. Render immediately with embedded data
   rAll();
@@ -752,6 +833,8 @@ window.addEventListener('DOMContentLoaded',async()=>{
   document.getElementById('lo').classList.add('hd');
   // 5. Try to get live data in background (no blocking)
   trySheets().then(ok=>{if(ok)rAll();}).catch(()=>{});
+  // Load budget sheet separately
+  fetchBudgetSheet().then(bgt=>{if(bgt&&Object.keys(bgt).length>0){B=bgt;if(document.getElementById('vw-bg').classList.contains('on'))rBG();}}).catch(()=>{});
   // 6. Auto-refresh every 5 minutes
   setInterval(()=>trySheets().then(ok=>{if(ok)rAll();}).catch(()=>{}), 300000);
 });
