@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1D3557">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>WorkTracer | Wisma 46 Engineering</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{--bg:#f0f2f5;--card:#fff;--nav:#1D3557;--pri:#1D9E75;--t:#1a1a2e;--t2:#6b7280;--bd:#e5e7eb;--red:#dc2626;--amb:#d97706;--blu:#2563eb;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--t);display:flex;height:100vh;overflow:hidden;font-size:13px;}
+.sb{width:210px;background:var(--nav);display:flex;flex-direction:column;height:100vh;flex-shrink:0;}
+.sb-logo{padding:14px 16px 12px;border-bottom:1px solid rgba(255,255,255,.08);}
+.sb-logo h1{font-size:15px;font-weight:700;color:#fff;}
+.sb-logo p{font-size:10px;color:rgba(255,255,255,.45);margin-top:1px;}
+.sb-nav{flex:1;padding:6px 0;overflow-y:auto;}
+.nb{display:flex;align-items:center;gap:9px;width:100%;padding:8px 14px;background:none;border:none;color:rgba(255,255,255,.6);font-size:12px;cursor:pointer;text-align:left;border-left:3px solid transparent;transition:all .15s;}
+.nb:hover{background:rgba(255,255,255,.07);color:#fff;}
+.nb.on{background:rgba(255,255,255,.12);color:#fff;border-left-color:var(--pri);}
+.sb-sep{height:1px;background:rgba(255,255,255,.07);margin:4px 12px;}
+.sb-foot{padding:10px 14px;border-top:1px solid rgba(255,255,255,.07);}
+.sb-foot b{font-size:12px;color:#fff;display:block;}
+.sb-foot span{font-size:10px;color:rgba(255,255,255,.4);}
+.mn{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:var(--card);border-bottom:1px solid var(--bd);padding:9px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.topbar h2{font-size:14px;font-weight:600;}
+.topbar p{font-size:10px;color:var(--t2);}
+.bar-r{display:flex;gap:7px;align-items:center;}
+.btn{padding:5px 12px;border-radius:7px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--bd);background:var(--card);color:var(--t);}
+.btn:hover{background:var(--bg);}
+.btng{background:var(--pri);color:#fff;border-color:var(--pri);}
+.btng:hover{background:#0F6E56;}
+.live-badge{display:flex;align-items:center;gap:5px;font-size:10px;padding:3px 9px;border-radius:99px;border:1px solid;}
+.live-badge.live{background:#f0fdf4;color:#166534;border-color:#bbf7d0;}
+.live-badge.local{background:#fef9c3;color:#854d0e;border-color:#fde047;}
+.live-badge.err{background:#fef2f2;color:#991b1b;border-color:#fca5a5;}
+.dot{width:6px;height:6px;border-radius:50%;}
+.dot-g{background:#22c55e;animation:pl 2s infinite;}
+.dot-y{background:#eab308;}
+.dot-r{background:#dc2626;}
+@keyframes pl{0%,100%{opacity:1}50%{opacity:.3}}
+.ct{flex:1;overflow-y:auto;padding:14px 18px;}
+.vw{display:none;}
+.vw.on{display:block;}
+.met{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+.mc{background:var(--card);border-radius:10px;padding:12px 14px;border:1px solid var(--bd);}
+.mc-l{font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;font-weight:500;}
+.mc-v{font-size:24px;font-weight:700;margin-top:3px;line-height:1;}
+.mc-s{font-size:10px;color:var(--t2);margin-top:2px;}
+.mc.gr .mc-v{color:var(--pri);}
+.mc.bl .mc-v{color:var(--blu);}
+.mc.am .mc-v{color:var(--amb);}
+.mc.rd .mc-v{color:var(--red);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.cd{background:var(--card);border-radius:10px;padding:14px;border:1px solid var(--bd);}
+.cd-t{font-size:12px;font-weight:600;margin-bottom:10px;}
+.sbar{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
+.sbar-l{font-size:11px;color:var(--t2);min-width:80px;text-align:right;}
+.sbar-tr{flex:1;height:6px;background:#f3f4f6;border-radius:99px;overflow:hidden;}
+.sbar-f{height:100%;border-radius:99px;transition:width .5s;}
+.sbar-p{font-size:10px;color:var(--t2);min-width:32px;text-align:right;}
+.al{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid #f9fafb;}
+.al:last-child{border-bottom:none;}
+.ald{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.alt{font-size:11px;color:var(--t);line-height:1.45;}
+.alm{font-size:10px;color:var(--t2);}
+.fr{display:flex;gap:7px;margin-bottom:9px;flex-wrap:wrap;align-items:center;}
+.sel,.si{padding:5px 9px;border-radius:7px;border:1px solid var(--bd);font-size:11px;background:var(--card);color:var(--t);outline:none;}
+.si{width:190px;}
+.si:focus{border-color:var(--pri);}
+.tw{background:var(--card);border-radius:10px;overflow:hidden;border:1px solid var(--bd);}
+table{width:100%;border-collapse:collapse;font-size:11px;}
+th{padding:7px 10px;text-align:left;font-size:10px;font-weight:600;color:var(--t2);background:#f9fafb;border-bottom:1px solid var(--bd);white-space:nowrap;}
+td{padding:7px 10px;border-bottom:1px solid #f9fafb;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#fafafa;}
+.pl{display:inline-flex;align-items:center;font-size:9px;padding:2px 6px;border-radius:99px;font-weight:600;white-space:nowrap;}
+.pd{background:#dcfce7;color:#166534;}
+.pp{background:#dbeafe;color:#1d4ed8;}
+.pl2{background:#fee2e2;color:#991b1b;}
+.ph{background:#fef3c7;color:#92400e;}
+.pw{background:#f3f4f6;color:#4b5563;}
+.stag{display:inline-block;font-size:9px;padding:2px 5px;border-radius:4px;font-weight:500;}
+.pbar-w{display:flex;align-items:center;gap:4px;}
+.pbar{width:52px;height:4px;background:#f3f4f6;border-radius:99px;overflow:hidden;}
+.pbar-f{height:100%;border-radius:99px;}
+.lk{background:none;border:none;color:var(--blu);cursor:pointer;font-size:10px;text-decoration:underline;padding:0;}
+.aiw{display:flex;flex-direction:column;height:calc(100vh - 115px);}
+.aih{background:var(--card);border-radius:10px;padding:10px 13px;margin-bottom:10px;display:flex;align-items:center;gap:10px;border:1px solid var(--bd);}
+.aia{width:36px;height:36px;background:linear-gradient(135deg,#1D9E75,#185FA5);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0;}
+.aim{flex:1;overflow-y:auto;padding:3px 0;display:flex;flex-direction:column;gap:8px;}
+.msg{display:flex;gap:7px;max-width:90%;}
+.msg.u{align-self:flex-end;flex-direction:row-reverse;}
+.bbl{padding:8px 12px;border-radius:12px;font-size:12px;line-height:1.5;}
+.msg.ai .bbl{background:var(--card);border:1px solid var(--bd);border-radius:3px 12px 12px 12px;}
+.msg.u .bbl{background:var(--pri);color:#fff;border-radius:12px 3px 12px 12px;}
+.av2{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+.msg.ai .av2{background:#e0f2fe;color:#0c4a6e;}
+.msg.u .av2{background:var(--pri);color:#fff;}
+.aif{display:flex;gap:7px;margin-top:8px;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:6px 9px;align-items:flex-end;}
+.ait{flex:1;border:none;outline:none;font-size:12px;resize:none;background:transparent;color:var(--t);max-height:70px;font-family:inherit;line-height:1.5;}
+.ais{background:var(--pri);color:#fff;border:none;border-radius:7px;padding:6px 12px;cursor:pointer;font-size:12px;font-weight:500;}
+.ais:disabled{opacity:.4;cursor:not-allowed;}
+.qq{padding:4px 9px;border-radius:99px;border:1px solid var(--bd);background:var(--card);color:var(--t2);font-size:10px;cursor:pointer;}
+.qq:hover{border-color:var(--pri);color:var(--pri);}
+.ty span{width:5px;height:5px;border-radius:50%;background:var(--t2);animation:b .9s ease-in-out infinite;display:inline-block;margin:0 1px;}
+.ty span:nth-child(2){animation-delay:.15s;}
+.ty span:nth-child(3){animation-delay:.3s;}
+@keyframes b{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-4px)}}
+.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;align-items:center;justify-content:center;}
+.mbg.on{display:flex;}
+.mod{background:var(--card);border-radius:14px;width:500px;max-width:95vw;max-height:85vh;overflow-y:auto;padding:20px;}
+.mod h3{font-size:14px;font-weight:700;margin-bottom:3px;}
+.mod-s{font-size:11px;color:var(--t2);margin-bottom:12px;}
+.mclose{float:right;background:none;border:none;font-size:18px;cursor:pointer;color:var(--t2);}
+.sg{margin-bottom:16px;}
+.sl{font-size:11px;font-weight:600;color:var(--t);margin-bottom:4px;}
+.si2{width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--bd);font-size:12px;outline:none;color:var(--t);}
+.si2:focus{border-color:var(--pri);}
+.sh{font-size:10px;color:var(--t2);margin-top:3px;line-height:1.6;}
+.lo{position:fixed;inset:0;background:var(--nav);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:200;transition:opacity .5s;}
+.lo.hd{opacity:0;pointer-events:none;}
+.lsp{width:36px;height:36px;border:3px solid rgba(255,255,255,.15);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:99px;}
+</style>
+</head>
+<body>
+
+<div class="lo" id="lo">
+  <div class="lsp"></div>
+  <p style="color:rgba(255,255,255,.75);font-size:12px;">Memuat WorkTracer...</p>
+  <p id="lo-msg" style="color:rgba(255,255,255,.45);font-size:10px;margin-top:-6px;"></p>
+</div>
+
+<nav class="sb">
+  <div class="sb-logo"><h1>WorkTracer</h1><p>Wisma 46 Kota BNI · 2026</p></div>
+  <div class="sb-nav">
+    <button class="nb on" onclick="go('db')"><span>📊</span>Dashboard</button>
+    <button class="nb" onclick="go('wt')"><span>📋</span>Work Tracer</button>
+    <button class="nb" onclick="go('ms')"><span>🎯</span>Milestones</button>
+    <button class="nb" onclick="go('bg')"><span>💰</span>Budget Kode</button>
+    <div class="sb-sep"></div>
+    <button class="nb" onclick="go('ai')"><span>🤖</span>AI Assistant</button>
+    <button class="nb" onclick="go('st')"><span>⚙️</span>Pengaturan</button>
+  </div>
+  <div class="sb-foot"><b>Adi Saputra, S.T.</b><span>Chief Engineering</span></div>
+</nav>
+
+<div class="mn">
+  <div class="topbar">
+    <div><h2 id="pt">Dashboard</h2><p>PT Swadharma Primautama · Wisma 46 Kota BNI</p></div>
+    <div class="bar-r">
+      <div class="live-badge local" id="sy-badge">
+        <div class="dot dot-y" id="sy-dot"></div>
+        <span id="sy-txt">Memuat...</span>
+      </div>
+      <button class="btn" onclick="reload()">🔄 Refresh</button>
+      <button class="btn btng" onclick="go('ai')">🤖 Tanya AI</button>
+    </div>
+  </div>
+  <div class="ct">
+
+    <div class="vw on" id="vw-db">
+      <div class="met" id="met-r"></div>
+      <div class="g2">
+        <div class="cd"><div class="cd-t">📊 Progress per Section</div><div id="sbars"></div></div>
+        <div class="cd"><div class="cd-t">📌 Status Distribusi</div><div style="height:180px;"><canvas id="sc"></canvas></div></div>
+      </div>
+      <div class="g2">
+        <div class="cd"><div class="cd-t">💰 Budget vs Realisasi (Rp M)</div><div style="height:180px;"><canvas id="bc"></canvas></div></div>
+        <div class="cd"><div class="cd-t">⚠️ Alert Pekerjaan</div><div id="alrt"></div></div>
+      </div>
+    </div>
+
+    <div class="vw" id="vw-wt">
+      <div class="fr">
+        <input class="si" id="q" placeholder="Cari nama / No. PR..." oninput="fwt()">
+        <select class="sel" id="fs" onchange="fwt()">
+          <option value="">Semua Section</option>
+          <option>Electrical</option><option>Civil</option><option>Mechanical</option>
+          <option>ACMV</option><option>Lift</option><option>Escalator</option>
+          <option>Gondola</option><option>BAS/FAS</option><option>Genset</option><option>Plumbing</option>
+        </select>
+        <select class="sel" id="fst" onchange="fwt()">
+          <option value="">Semua Status</option><option value="Selesai">Selesai</option>
+          <option value="On-Progress">On-Progress</option><option value="Belum Mulai">Belum Mulai</option>
+        </select>
+        <select class="sel" id="fbt" onchange="fwt()">
+          <option value="">CAPEX+OPEX</option><option value="CAPEX">CAPEX</option><option value="OPEX">OPEX</option>
+        </select>
+        <span id="wc" style="font-size:11px;color:var(--t2);margin-left:auto;"></span>
+      </div>
+      <div class="tw"><table><thead><tr>
+        <th>No</th><th>Nama Pekerjaan</th><th>Section</th><th>Budget Code</th>
+        <th>Status</th><th>Progress</th><th>MS</th><th>Anggaran</th><th></th>
+      </tr></thead><tbody id="wtb"></tbody></table></div>
+    </div>
+
+    <div class="vw" id="vw-ms">
+      <div class="fr">
+        <input class="si" id="mq" placeholder="Cari proyek..." oninput="fms()">
+        <select class="sel" id="mfs" onchange="fms()">
+          <option value="">Semua Section</option>
+          <option>Electrical</option><option>Civil</option><option>Mechanical</option>
+          <option>ACMV</option><option>Lift</option><option>Escalator</option>
+          <option>Gondola</option><option>BAS/FAS</option><option>Genset</option><option>Plumbing</option>
+        </select>
+        <span id="mc" style="font-size:11px;color:var(--t2);margin-left:auto;"></span>
+      </div>
+      <div id="msl"></div>
+    </div>
+
+    <div class="vw" id="vw-bg">
+      <div class="met" style="grid-template-columns:repeat(3,1fr);" id="bgm"></div>
+      <div style="height:12px;"></div>
+      <div class="tw"><table><thead><tr>
+        <th>Budget Code</th><th>Type</th><th>Anggaran (Rp)</th>
+        <th>Realisasi (Rp)</th><th>Sisa (Rp)</th><th>% Terpakai</th><th>Status</th><th>#</th>
+      </tr></thead><tbody id="bgtb"></tbody></table></div>
+    </div>
+
+    <div class="vw" id="vw-ai">
+      <div class="aiw">
+        <div class="aih">
+          <div class="aia">🤖</div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:700;">AI Assistant WorkTracer</div>
+            <div style="font-size:10px;color:var(--t2);">Groq Llama 3 · Gratis · Semua yang buka web ini bisa tanya AI · Data <span id="ai-count">140</span> pekerjaan</div>
+          </div>
+          <div id="ais" style="font-size:10px;padding:3px 9px;border-radius:99px;background:#f9fafb;color:var(--t2);border:1px solid var(--bd);">Cek...</div>
+        </div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:7px;" id="qqs"></div>
+        <div class="aim" id="msgs"></div>
+        <div class="aif">
+          <textarea class="ait" id="ai-in" rows="1" placeholder="Tanya tentang data pekerjaan, budget, progress..."
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAI();}"></textarea>
+          <button class="ais" id="aib" onclick="sendAI()">Kirim</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="vw" id="vw-st">
+      <div class="cd" style="max-width:540px;">
+        <div class="cd-t">⚙️ Pengaturan Koneksi & AI</div>
+        <div class="sg">
+          <div class="sl">Google Sheets — Sheet ID</div>
+          <input class="si2" id="sh-id" placeholder="1i3TBOdRk9RDrENxGVBazgP8OY_7R69Jbie4R0w1L1yw">
+          <div class="sh">Sheet ID dari URL: docs.google.com/spreadsheets/d/<b>ID_DI_SINI</b>/edit</div>
+        </div>
+        <div class="sg">
+          <div class="sl">GID (Tab Work Tracer)</div>
+          <input class="si2" id="sh-gid" placeholder="1885906887">
+          <div class="sh">GID dari URL: ...edit?gid=<b>GID_DI_SINI</b></div>
+        </div>
+        <div class="sg">
+          <div class="sl">🤖 Groq API Key — AI untuk semua pengguna</div>
+          <input class="si2" type="password" id="gkey" placeholder="gsk_xxxxxxxxxxxxxxxxxxxx">
+          <div class="sh">Gratis di <b>console.groq.com</b> → API Keys → Create. Setelah disimpan, semua yang buka web ini bisa pakai AI.</div>
+        </div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;">
+          <button class="btn btng" onclick="saveSt()">💾 Simpan</button>
+          <button class="btn" onclick="testSh()">🔌 Test Koneksi</button>
+          <button class="btn" onclick="testAI()">🤖 Test AI</button>
+        </div>
+        <div id="stmsg" style="font-size:11px;margin-top:10px;color:var(--t2);line-height:1.7;"></div>
+        <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--bd);font-size:11px;color:var(--t2);line-height:1.9;">
+          WorkTracer PWA v5.0 · Wisma 46 Kota BNI · PR 2026<br>
+          Chief Engineering: Adi Saputra, S.T. · PT Swadharma Primautama
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="mbg" id="mbg" onclick="if(event.target===this)cm()">
+  <div class="mod">
+    <button class="mclose" onclick="cm()">×</button>
+    <h3 id="mtit"></h3><div class="mod-s" id="msub"></div><div id="mbod"></div>
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const CFG = {
+  sheetId: '1i3TBOdRk9RDrENxGVBazgP8OY_7R69Jbie4R0w1L1yw',
+  gid:     '1885906887',
+  get csvUrl(){ return `https://docs.google.com/spreadsheets/d/${this.sheetId}/export?format=csv&gid=${this.gid}`; },
+  get pubUrl(){ return `https://docs.google.com/spreadsheets/d/e/2PACX-1vRqMVVwDUcGpmRNlfdg0xK_Jf_XjqXtK1Cpo87WtH5E6An4bF1i8_xL-RhaHsaSiw/pub?gid=${this.gid}&single=true&output=csv`; }
+};
+
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+const MN=['PR & Design Concept','Finalisasi, Tender Kickoff & PO','Contract Award & PKS',
+  'Mobilisasi, Final Design, Construct Work, Testing & Punch List',
+  'Final HO & Documentation / BAST 1','Defect Liability / BAST 2 (Retention)'];
+const MW=[.15,.20,.05,.50,.05,.05];
+const SC={'Electrical':'#F57F17','Civil':'#6A1B9A','Mechanical':'#0D47A1','ACMV':'#006064',
+  'Lift':'#BF360C','Escalator':'#880E4F','Gondola':'#1B5E20','BAS/FAS':'#4527A0','Genset':'#E65100','Plumbing':'#01579B'};
+const SB={'Electrical':'#FFF9C4','Civil':'#F3E5F5','Mechanical':'#E3F2FD','ACMV':'#E0F7FA',
+  'Lift':'#FBE9E7','Escalator':'#FCE4EC','Gondola':'#E8F5E9','BAS/FAS':'#EDE7F6','Genset':'#FFF3E0','Plumbing':'#E1F5FE'};
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let P=[], M={}, B={}, SC2=null, BC2=null;
+
+// ─── EMBEDDED DATA ────────────────────────────────────────────────────────────
+const EMB={"p":[{"id":1,"n":"Suply & Install New  LED lighting  untuk area  Façade tower mast Tahap 1","sec":"Electrical","pr":"SP/PR/2026/01/0022","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":40.0,"msd":3,"bt":"CAPEX-B6","ang":500000000,"rel":0},{"id":2,"n":"Pekerjaan Purifikasi Oli Trafo Genset 1 sd 5","sec":"Electrical","pr":"SP/PR/2026/01/0030","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":90.0,"msd":4,"bt":"OPEX-E2H","ang":50000000,"rel":42500000},{"id":3,"n":"Supply Part Sliding Door Lobby Utara & Selatan","sec":"Electrical","pr":"SP/PR/2026/01/0045","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":40.0,"msd":3,"bt":"OPEX-E2A","ang":365000000,"rel":13500000},{"id":4,"n":"Upgrading components and rewiring sub DB and Starting controller panels Panel co","sec":"Electrical","pr":"SP/PR/2026/01/0056","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-B1","ang":300000000,"rel":0},{"id":5,"n":"Project upgrading Starting Controller Panel Boster pump Lt 4M dan Lt 48","sec":"Electrical","pr":"SP/PR/2026/01/0057","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-B1","ang":300000000,"rel":0},{"id":6,"n":"Project upgrade /Penambahan kapasitas Data storage CCTV system capacity 4 NVR ( ","sec":"Electrical","pr":"SP/PR/2026/01/0059","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":95.0,"msd":5,"bt":"CAPEX-B3","ang":150000000,"rel":84660000},{"id":7,"n":"Supply & Install Project penggantian Battery Charger Untuk ACB","sec":"Electrical","pr":"SP/PR/2026/02/0067","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":40.0,"msd":3,"bt":"CAPEX-B11","ang":250000000,"rel":127500000},{"id":8,"n":"Supply & Install Project Upgrading Controller Panel untuk BAS Tahap 4 di Lantai ","sec":"Electrical","pr":"SP/PR/2026/02/0068","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":40.0,"msd":3,"bt":"CAPEX-B13","ang":375000000,"rel":343935000},{"id":9,"n":"Supply & Install Project Upgrading BAS Main Controller module (Network Automatio","sec":"Electrical","pr":"SP/PR/2026/02/0077","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":40.0,"msd":3,"bt":"CAPEX-B8","ang":320000000,"rel":304000000},{"id":10,"n":"Supply & Install Project upgrading Starting Controller Panel Pressure Staircase ","sec":"Electrical","pr":"SP/PR/2026/02/0104","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-B1","ang":300000000,"rel":0},{"id":11,"n":"Supply lamp T5 LED 8 watt untuk Lt. 3, 5 sd Lt.28 ( 23 lantai )","sec":"Electrical","pr":"SP/PR/2026/02/0110","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-B5","ang":200000000,"rel":0},{"id":12,"n":"Capex CCTV Indoor IP Camera","sec":"Electrical","pr":"SP/PR/2026/02/0112","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":95.0,"msd":5,"bt":"CAPEX-B2","ang":500000000,"rel":197681950},{"id":13,"n":"Capex CCTV Outdoor IP Camera","sec":"Electrical","pr":"SP/PR/2026/02/0113","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":95.0,"msd":5,"bt":"CAPEX-B2","ang":500000000,"rel":199618250},{"id":14,"n":"Part sliding door lobby utara","sec":"Electrical","pr":"SP/PR/2026/03/0120","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":40.0,"msd":3,"bt":"OPEX-E2A","ang":365000000,"rel":4050000},{"id":15,"n":"Supply Jasa PT.Trakindo Operator Genset 1 sd 5 pelaksanaan PLN Failure Drill 11 ","sec":"Electrical","pr":"SP/PR/2026/03/0142","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":95.0,"msd":5,"bt":"OPEX-E2A","ang":365000000,"rel":6407050},{"id":16,"n":"STICKER INFRARED WARNA BIRU UK. 55X45mm 1,000.00 BUA","sec":"Electrical","pr":"SP/PR/2026/04/0158","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":40.0,"msd":3,"bt":"OPEX-E2A","ang":365000000,"rel":1000000},{"id":17,"n":"Supply & Install power metering & energy monitoring system Tahap 3 tahun 2026","sec":"Electrical","pr":"SP/PR/2026/04/0164","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-B14","ang":400000000,"rel":0},{"id":18,"n":"1. POWER SUPPLY GEPS12-60 (LAMP MINIMAX LE 8.00 BUA","sec":"Electrical","pr":"SP/PR/2026/04/0165","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":40.0,"msd":3,"bt":"OPEX-E2A","ang":365000000,"rel":9024000},{"id":19,"n":"1. ELECTRO MAGNETIC DOOR HOLDERS DH503 2.00 UNIT","sec":"Electrical","pr":"SP/PR/2026/04/0166","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-E2A","ang":365000000,"rel":0},{"id":20,"n":"Repainting enclosure genset tahap 2 untuk genset No 2, 3, 4","sec":"Electrical","pr":"SP/PR/2026/04/0167","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-E1","ang":350000000,"rel":0},{"id":21,"n":"SAMSUNG 32\" SMART MONITOR 32DM700UE 4K UHD 384 2.00 UNIT Stock penggantian 1 tv ","sec":"Electrical","pr":"SP/PR/2026/04/0193","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-E2A","ang":365000000,"rel":0},{"id":22,"n":"SUPPLY MATERIAL  Replacement of conventional lighting to LED","sec":"Electrical","pr":"SP/PR/2026/05/0196","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-B10","ang":85000000,"rel":0},{"id":23,"n":"ELECTRICAL - SUPPLY MATERIAL 1,00 UNIT Pekerjaan penggantian Packing seal LV, HV","sec":"Electrical","pr":"SP/PR/2026/05/0220","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-E2A","ang":365000000,"rel":0},{"id":24,"n":"ELECTRICAL - SUPPLY MATERIAL 1,00 LOT Repair & Reinstalasi Paging Adress system","sec":"Electrical","pr":"SP/PR/2026/05/0237","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-PM.B1","ang":140000000,"rel":0},{"id":25,"n":"1 ELECTRICAL - SUPPLY MATERIAL 1,00 LOT Smart monitoring system for Wind speed a","sec":"Electrical","pr":"SP/PR/2026/05/0239","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-B15","ang":30000000,"rel":0},{"id":26,"n":"ELECTRICAL - SUPPLY MATERIAL 9,00 UNIT Sliding door","sec":"Electrical","pr":"SP/PR/2026/05/0242","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-E2A","ang":365000000,"rel":0},{"id":111,"n":"","sec":"Electrical","pr":"","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":112,"n":"","sec":"Electrical","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":113,"n":"","sec":"Electrical","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":27,"n":"Jasa : Fee proposal & Rekomendasi Konsultan (untuk project Upgrading Soft and Ha","sec":"Civil","pr":"SP/PR/2026/01/0027","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":40.0,"msd":3,"bt":"CAPEX-G10","ang":2500000000,"rel":15400000},{"id":28,"n":"Jasa : Design Upgrading Soft and Hard Landscape, Social Garden, South Perimeter ","sec":"Civil","pr":"SP/PR/2026/01/0028","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":40.0,"msd":3,"bt":"CAPEX-G10","ang":2500000000,"rel":154000000},{"id":29,"n":"Project : Supply & Install Penggantian Kaca Retak di suite G.12 Tomoro Coffee","sec":"Civil","pr":"SP/PR/2026/01/0032","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":95.0,"msd":5,"bt":"OPEX-PM.F1","ang":200000000,"rel":12104100},{"id":30,"n":"Project : Supply & Install Perbaikan Sealant di area kaca slooping Glass (Suite ","sec":"Civil","pr":"SP/PR/2026/01/0033","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":40.0,"msd":3,"bt":"OPEX-PM.F1","ang":200000000,"rel":30000000},{"id":31,"n":"Pembongkaran & pemasangan Quadra pada dinding Lobby lift low-mid zone GF.","sec":"Civil","pr":"SP/PR/2026/01/0051","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":95.0,"msd":5,"bt":"OPEX-PM.F1","ang":200000000,"rel":7245000},{"id":32,"n":"Penggantian Kaca Lobby Lift lantai 21.","sec":"Civil","pr":"SP/PR/2026/01/0053","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":95.0,"msd":5,"bt":"OPEX-E2D","ang":245000000,"rel":0},{"id":33,"n":"Supply & Install kaca cermin Male toilet Lv.7.","sec":"Civil","pr":"SP/PR/2026/01/0054","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":95.0,"msd":5,"bt":"OPEX-E2D","ang":245000000,"rel":0},{"id":34,"n":"Material Standart Condition suite 36.04-05.","sec":"Civil","pr":"SP/PR/2026/02/0064","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":95.0,"msd":5,"bt":"OPEX-E2L","ang":1050000000,"rel":30787700},{"id":35,"n":"Supply & Install Project Standart Condition suite 36.04-05.","sec":"Civil","pr":"SP/PR/2026/02/0069","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":95.0,"msd":5,"bt":"OPEX-E2L","ang":1050000000,"rel":64785600},{"id":36,"n":"Project Penggantian Kaca Fasade Lantai 4.","sec":"Civil","pr":"SP/PR/2026/02/0070","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":95.0,"msd":5,"bt":"OPEX-E2D","ang":245000000,"rel":4500000},{"id":37,"n":"Project Lactation Room di Lantai 2","sec":"Civil","pr":"SP/PR/2026/02/0099","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":90.0,"msd":4,"bt":"CAPEX-H1","ang":100000000,"rel":45495000},{"id":38,"n":"Design & Build Fitted Unit 35.04","sec":"Civil","pr":"SP/PR/2026/02/0106","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":90.0,"msd":4,"bt":"CAPEX-H2","ang":1000000000,"rel":355000000},{"id":39,"n":"Project Extend Canopy Pedestrian - GF","sec":"Civil","pr":"SP/PR/2026/02/0114","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-G4","ang":400000000,"rel":0},{"id":40,"n":"Upgrading Retail Lift Lobbies L1, L2, L3, and Ground Floor Toilets","sec":"Civil","pr":"SP/PR/2026/03/0127","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":35.0,"msd":2,"bt":"CAPEX-G11","ang":3100000000,"rel":1640000000},{"id":41,"n":"Project Upgrading East Lobby Ceiling","sec":"Civil","pr":"SP/PR/2026/03/0128","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":35.0,"msd":2,"bt":"CAPEX-G12","ang":1500000000,"rel":405000000},{"id":42,"n":"Integrated Concept Design for Outdoor Facility Upgrading (Smoking Area, South Pe","sec":"Civil","pr":"SP/PR/2026/03/0129","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":40.0,"msd":3,"bt":"CAPEX-G9","ang":5300000000,"rel":500000000},{"id":43,"n":"Landlord Builder works ( Civil + MEP Works ) for New prospective tenant # Suite ","sec":"Civil","pr":"SP/PR/2026/03/0131","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-H2","ang":1000000000,"rel":0},{"id":44,"n":"Budget : Upgrading Retail Lift Lobbies L1, L2, L3, and Ground Floor Toilets Cape","sec":"Civil","pr":"SP/PR/2026/03/0138","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":35.0,"msd":2,"bt":"CAPEX-G11","ang":3100000000,"rel":164000000},{"id":45,"n":"Upgrading East Lobby Ceiling, Capex # 12101004-G.12","sec":"Civil","pr":"SP/PR/2026/03/0140","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":35.0,"msd":2,"bt":"CAPEX-G12","ang":1500000000,"rel":40500000},{"id":46,"n":"Civil, M&E and ID Works (Indoors & outdoors building Upgrading) #Capex-12101004-","sec":"Civil","pr":"SP/PR/2026/03/0141","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":35.0,"msd":2,"bt":"CAPEX-G9","ang":5300000000,"rel":50000000},{"id":47,"n":"1. ASPHAL DINGIN INSTAN ESTIKA PATCH E13 12.00 ZAK","sec":"Civil","pr":"SP/PR/2026/04/0163","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":35.0,"msd":2,"bt":"OPEX-E2D","ang":245000000,"rel":3225420},{"id":48,"n":"HEAVY DUTY ANCHOR HILTI HLD 2 / KWIK TOG 2 150.00 BUA","sec":"Civil","pr":"SP/PR/2026/04/0170","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":35.0,"msd":2,"bt":"OPEX-E2D","ang":245000000,"rel":2110903},{"id":49,"n":"KERAMIK DFONTINA STATUARIO","sec":"Civil","pr":"SP/PR/2026/04/0179","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-H1","ang":100000000,"rel":0},{"id":50,"n":"Supply &Install Project Perbaikan Aspalt area Outdoor / Carpark Budget : Resurfa","sec":"Civil","pr":"SP/PR/2026/04/0185","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-PM.E5","ang":150000000,"rel":0},{"id":51,"n":"1 PINTU PVC MY DOOR 70 X 195 CM FULL SET  1.00 BUA","sec":"Civil","pr":"SP/PR/2026/05/0195","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-E2D","ang":245000000,"rel":0},{"id":52,"n":"OTHERS - INSTALL 1.00 LOT Repair Lantai 1 Marmer di Area Lobby Utara _ G Approve","sec":"Civil","pr":"SP/PR/2026/05/0200","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":40.0,"msd":3,"bt":"OPEX-PM.F1","ang":200000000,"rel":8000000},{"id":53,"n":"1 OTHERS - SUPPLY MATERIAL 1.00 LOT Supply Material 1 & Install Penggantian Kaca","sec":"Civil","pr":"SP/PR/2026/05/0202","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-E2D","ang":245000000,"rel":0},{"id":54,"n":"Project Standart Condition Suite 32.03-05 STANDART CONDITION - SUPPLY MATERIAL 1","sec":"Civil","pr":"SP/PR/2026/05/0206","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-E2L","ang":1050000000,"rel":0},{"id":55,"n":"STANDART CONDITION - SUPPLY MATERIAL 1.00 LOT Relokasi 1 Head Sprinkler di Suite","sec":"Civil","pr":"SP/PR/2026/05/0215","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-E2L","ang":1050000000,"rel":0},{"id":56,"n":"CIVIL - SUPPLY MATERIAL 1,00 LOT Project Supply & Install Talang Roof MSCP","sec":"Civil","pr":"SP/PR/2026/05/0221","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-G6","ang":500000000,"rel":0},{"id":57,"n":"CIVIL - SUPPLY MATERIAL 1,00 LOT Project Repair Sealant Kaca Fasade - MSCP","sec":"Civil","pr":"SP/PR/2026/05/0222","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-G6","ang":500000000,"rel":0},{"id":58,"n":"OTHER - CONSULTANT DESIGN & BUILD MEP 1,00 LOT Jasa Design & Build MEP MSCP Lant","sec":"Civil","pr":"SP/PR/2026/05/0223","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-H2","ang":1000000000,"rel":0},{"id":59,"n":"CIVIL - SUPPLY MATERIAL 1,00 LOT Project Epoxy Flooring lantai B1 & LG - Taha","sec":"Civil","pr":"SP/PR/2026/05/0233","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-F3","ang":800000000,"rel":0},{"id":60,"n":"1. Changing Table / Elena Baby Tafel 1,00 BUA","sec":"Civil","pr":"SP/PR/2026/05/0234","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-H1","ang":100000000,"rel":0},{"id":61,"n":"CUTTING ACRYLIC NOMER LANTAI 4,00 BUA Supply Material Cutting Acrylic untuk Nome","sec":"Civil","pr":"SP/PR/2026/05/0238","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-E2D","ang":245000000,"rel":0},{"id":114,"n":"","sec":"Civil","pr":"","pic":"Siswoyo","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":115,"n":"","sec":"Civil","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":116,"n":"","sec":"Civil","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":62,"n":"Jasa instal & shipment main rope lift no 16 dan Lift no 19","sec":"Mechanical","pr":"SP/PR/2026/01/0036","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":40.0,"msd":3,"bt":"CAPEX-D2","ang":2000000000,"rel":53921400},{"id":63,"n":"Supply & Install Flow meter Gas KFC lantai 2.","sec":"Mechanical","pr":"SP/PR/2026/01/0050","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-E2B","ang":380000000,"rel":0},{"id":64,"n":"Supply & Install Penggantian Pipa solar yang korosif di lantai LG - GF.","sec":"Mechanical","pr":"SP/PR/2026/01/0052","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":95.0,"msd":5,"bt":"OPEX-E2B","ang":380000000,"rel":19132200},{"id":65,"n":"Material Lampu untuk penggantian lampu suite available","sec":"Mechanical","pr":"SP/PR/2026/02/0079","pic":"Nuriyadhus","tgt":"","sts":"🟢 Selesai","prg":100.0,"msd":6,"bt":"OPEX-E2L","ang":1050000000,"rel":6172000},{"id":66,"n":"Supply & Install Pekerjaan penggantain pompa buster pump lantai 48","sec":"Mechanical","pr":"SP/PR/2026/02/0082","pic":"Nuriyadhus","tgt":"","sts":"🟢 Selesai","prg":100.0,"msd":6,"bt":"CAPEX-A1","ang":300000000,"rel":79200000},{"id":67,"n":"Supply & Install Pekerjaan penggantain pompa Exspantion Cooling tower 4m","sec":"Mechanical","pr":"SP/PR/2026/02/0083","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":90.0,"msd":4,"bt":"CAPEX-A1","ang":300000000,"rel":67201200},{"id":68,"n":"Kabel NYM 3 X 1,5 mm2 untuk Penarikan kabel 1 kontrol Wlc Exspantion","sec":"Mechanical","pr":"SP/PR/2026/02/0102","pic":"Nuriyadhus","tgt":"","sts":"🟢 Selesai","prg":100.0,"msd":6,"bt":"OPEX-E2B","ang":380000000,"rel":1607657},{"id":69,"n":"Supply & Install Media sumur Resapan air hujan tahap 2 di area Parkir outdoor Zo","sec":"Mechanical","pr":"SP/PR/2026/02/0105","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-A10","ang":300000000,"rel":0},{"id":70,"n":"Supply dan install  project penggantian Pipa distribusi air bersih untuk suply k","sec":"Mechanical","pr":"SP/PR/2026/02/0107","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":90.0,"msd":4,"bt":"CAPEX-A2","ang":800000000,"rel":373774750},{"id":71,"n":"Semi Overhaul Pompa main fire Pump","sec":"Mechanical","pr":"SP/PR/2026/02/0117","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":40.0,"msd":3,"bt":"OPEX-PM.A1","ang":250000000,"rel":39150000},{"id":72,"n":"Perbaikan Pipa hidrant pilar gate 8","sec":"Mechanical","pr":"SP/PR/2026/03/0134","pic":"Nuriyadhus","tgt":"","sts":"🟢 Selesai","prg":100.0,"msd":6,"bt":"CAPEX-A9","ang":50000000,"rel":23294700},{"id":73,"n":"Budget tersebut Untuk Suply & Insatall pekerjaan project Pembongkaran & pemasang","sec":"Mechanical","pr":"SP/PR/2026/04/0160","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-A8","ang":100000000,"rel":0},{"id":74,"n":"1. MECHANICAL- SUPPLY MATERIAL 1,00 LOT Suply Smart water meter 1","sec":"Mechanical","pr":"SP/PR/2026/04/0172","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-A3","ang":200000000,"rel":0},{"id":75,"n":"1. OTHERS - SUPPLY MATERIAL 1,00 LOT Supply Project Instalasi MEP Landlord unt 1","sec":"Mechanical","pr":"SP/PR/2026/04/0182","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":95.0,"msd":5,"bt":"OPEX-PM.F1","ang":200000000,"rel":10727100},{"id":76,"n":"1. Supply &Install Project Install pipa Air bersih dan Air Bekas untuk Prospect ","sec":"Mechanical","pr":"SP/PR/2026/04/0192","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":95.0,"msd":5,"bt":"CAPEX-H1","ang":100000000,"rel":5796900},{"id":117,"n":"","sec":"Mechanical","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":118,"n":"","sec":"Mechanical","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":119,"n":"","sec":"Mechanical","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":77,"n":"Suply & Install Project Penggantian Cooling Tower No 5","sec":"ACMV","pr":"SP/PR/2026/02/0088","pic":"Sultoni","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-C4","ang":1800000000,"rel":0},{"id":78,"n":"Suply & Install Project Penggantian pompa chiller no 5 Tahap 3 tahun 2026","sec":"ACMV","pr":"SP/PR/2026/02/0091","pic":"Sultoni","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-C3","ang":1200000000,"rel":0},{"id":79,"n":"Supply  filter Oli untuk Penggantian","sec":"ACMV","pr":"SP/PR/2026/02/0108","pic":"Sultoni","tgt":"","sts":"🟢 Selesai","prg":100.0,"msd":6,"bt":"OPEX-E2C","ang":515000000,"rel":10800000},{"id":80,"n":"Pekerjaan Jasa Leak Test Chiller No 3","sec":"ACMV","pr":"SP/PR/2026/02/0111","pic":"Sultoni","tgt":"","sts":"🔵 On-Progress","prg":95.0,"msd":5,"bt":"OPEX-E2C","ang":515000000,"rel":17550000},{"id":81,"n":"PM Cleaning ducting ac AHU lt 5,18,30,31,32, & 34,39,41,42 & 45 (Total luas 3366","sec":"ACMV","pr":"SP/PR/2026/03/0136","pic":"Sultoni","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-C1","ang":120000000,"rel":0},{"id":82,"n":"Jasa pekerjaan servise ac split wal lantai LMR cp 8 ,LMR 49 & AC VRV lantai 50 J","sec":"ACMV","pr":"SP/PR/2026/03/0137","pic":"Sultoni","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-C2","ang":50000000,"rel":0},{"id":83,"n":"1. SUPPLY MATERIAL - AIR CONDITIONING 1,00 LOT suply & instal pasang panel VFD A","sec":"ACMV","pr":"SP/PR/2026/04/0168","pic":"Sultoni","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-C8","ang":600000000,"rel":0},{"id":84,"n":"1.SUPPLY MATERIAL - AIR CONDITIONING 1,00 LOT Suply & install project upgrade mo","sec":"ACMV","pr":"SP/PR/2026/04/0169","pic":"Sultoni","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-B11","ang":250000000,"rel":127500000},{"id":85,"n":"1 KABEL SUPREME NYY 3X6MM 150,00 M order kabel untuk pemasangan New panel 1 2 KA","sec":"ACMV","pr":"SP/PR/2026/05/0198","pic":"Sultoni","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-C8","ang":600000000,"rel":30518015},{"id":86,"n":"REFRIGERANT SUVA/CHEMOURS R123 4,00 DRU","sec":"ACMV","pr":"SP/PR/2026/05/0204","pic":"Sultoni","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-E2C","ang":515000000,"rel":0},{"id":87,"n":"FAN PANEL CHILLER QUAN FENG 13538HSL2 (2,00 BUA)","sec":"ACMV","pr":"SP/PR/2026/05/0208","pic":"Sultoni","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-E2C","ang":515000000,"rel":0},{"id":88,"n":"1 HVAC/ACMV - SUPPLY MATERIAL 1,00 LOT","sec":"ACMV","pr":"SP/PR/2026/05/0211","pic":"Sultoni","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-E2C","ang":515000000,"rel":0},{"id":89,"n":"1 HVAC/ACMV - SUPPLY MATERIAL 1,00 LOT Bongkar pasang 1 & rewinding motor 2 HVAC","sec":"ACMV","pr":"SP/PR/2026/05/0218","pic":"Sultoni","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-E2C","ang":515000000,"rel":0},{"id":90,"n":"HVAC/ACMV - SUPPLY MATERIAL 1,00 LOT Bongkar pasang penggantian","sec":"ACMV","pr":"SP/PR/2026/05/0219","pic":"Sultoni","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-E2C","ang":515000000,"rel":0},{"id":91,"n":"1 SUPPLY MATERIAL - AIR CONDITIONING 1,00 LOT Supply & install 1 project pemasan","sec":"ACMV","pr":"SP/PR/2026/05/0231","pic":"Sultoni","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-A1","ang":300000000,"rel":0},{"id":120,"n":"","sec":"ACMV","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":121,"n":"","sec":"ACMV","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":122,"n":"","sec":"ACMV","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":92,"n":"Supply Material  untuk pembelian spring soket lift#16 dan Lift#19 & Main rope Li","sec":"Lift","pr":"SP/PR/2026/01/0041","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":40.0,"msd":3,"bt":"CAPEX-D2","ang":2000000000,"rel":1678588714},{"id":93,"n":"LIFT/ESCALATOR/GONDOLA - SUPPLY MATERIAL 1,00 LOT Suply material Modernisasi lif","sec":"Lift","pr":"SP/PR/2026/03/0143","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-D4","ang":800000000,"rel":0},{"id":94,"n":"1. ROLLER GUIDE COUNTER WEIGHT 7.00 BUA","sec":"Lift","pr":"SP/PR/2026/04/0155","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":95.0,"msd":5,"bt":"OPEX-E2F","ang":230000000,"rel":27499500},{"id":95,"n":"Maintenance Contract LIFT - SCHINDLER (l46-48) JSO 1,00 LOT  Renewal Contract Ex","sec":"Lift","pr":"SP/PR/2026/04/0175","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-E1L","ang":93033000,"rel":0},{"id":96,"n":"LIFT/ESCALATOR/GONDOLA - SUPPLY MATERIAL 1,00 LOT  LIFT/ESCALATOR/GONDOLA - INST","sec":"Lift","pr":"SP/PR/2026/05/0212","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-D4","ang":800000000,"rel":0},{"id":97,"n":"LIFT/ESCALATOR/GONDOLA - DESIGN & BUILD 1,00 LOT","sec":"Lift","pr":"SP/PR/2026/05/0217","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-D4","ang":800000000,"rel":0},{"id":98,"n":"BATTRAY EMERGENCY TOP DC 12 V, 2,2 AH, 0 3,00 PCS Untuk Penggantian Unit Lift fu","sec":"Lift","pr":"SP/PR/2026/05/0241","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-E2F","ang":230000000,"rel":0},{"id":123,"n":"","sec":"Lift","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":124,"n":"","sec":"Lift","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":125,"n":"","sec":"Lift","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":99,"n":"1. SPROKET ASY 27/20 (L) 1,00","sec":"Escalator","pr":"SP/PR/2026/01/0040","pic":"Nuriyadhus","tgt":"","sts":"🟢 Selesai","prg":100.0,"msd":6,"bt":"OPEX-E2i","ang":240000000,"rel":0},{"id":100,"n":"BUFFER GEAR 360,00 BUA Untuk unit Escalator NO 3 , 5 , 8","sec":"Escalator","pr":"SP/PR/2026/05/0228","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-E2i","ang":240000000,"rel":0},{"id":126,"n":"","sec":"Escalator","pr":"","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":127,"n":"","sec":"Escalator","pr":"","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":128,"n":"","sec":"Escalator","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":101,"n":"Jasa insatall penggantian Limit switch Gondola BMU 3","sec":"Gondola","pr":"SP/PR/2026/01/0055","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":90.0,"msd":4,"bt":"OPEX-PM.E7","ang":300000000,"rel":4500000},{"id":102,"n":"Maintenance Contract Gondola 1,00 LOT Maintenance Contract of 1 1 2 units Gondol","sec":"Gondola","pr":"SP/PR/2026/04/0174","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":90.0,"msd":4,"bt":"OPEX-E1i","ang":19825000,"rel":19250000},{"id":103,"n":"CIVILS - SUPPLY MATERIAL 1,00 LOT Suplly Pekerjaan perbaikan Bogie`s Unit Gon","sec":"Gondola","pr":"SP/PR/2026/05/0227","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-PM.E7","ang":300000000,"rel":0},{"id":129,"n":"","sec":"Gondola","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":130,"n":"","sec":"Gondola","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":131,"n":"","sec":"Gondola","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":104,"n":"1 SMOKE DETECTOR FSP-951 + BASE DETECTOR 1 B501 5.00 SET","sec":"BAS/FAS","pr":"SP/PR/2026/04/0188","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":40.0,"msd":3,"bt":"OPEX-E2G","ang":30000000,"rel":8426000},{"id":132,"n":"","sec":"BAS/FAS","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":133,"n":"","sec":"BAS/FAS","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":134,"n":"","sec":"BAS/FAS","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":105,"n":"BATTERY PANASONIC 12V-12AH MODEL LC-VA1212NA","sec":"Genset","pr":"SP/PR/2026/01/0031","pic":"Trimugi","tgt":"","sts":"🟢 Selesai","prg":100.0,"msd":6,"bt":"OPEX-E2H","ang":50000000,"rel":2227000},{"id":106,"n":"GENERATORS - SUPPLY MATERIAL 1,00 UNIT Preventive MaIntenance Yearly genset leve","sec":"Genset","pr":"SP/PR/2026/06/0244","pic":"Trimugi","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-PM.D3","ang":200000000,"rel":0},{"id":135,"n":"","sec":"Genset","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":136,"n":"","sec":"Genset","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":137,"n":"","sec":"Genset","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":107,"n":"MECHANICAL- SUPPLY MATERIAL 1,00 LOT Supply New Additional Tanki Ejector No 1 d","sec":"Plumbing","pr":"SP/PR/2026/05/0201","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"CAPEX-A4","ang":150000000,"rel":0},{"id":108,"n":"HAND DRYER TYC322W \"TOTO\" 2.00 BUA","sec":"Plumbing","pr":"SP/PR/2026/05/0213","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":35.0,"msd":2,"bt":"OPEX-E2B","ang":380000000,"rel":8964000},{"id":109,"n":"1 GATE VALVE 1/2\" 150 Fig.E KITZ 5.00 BUA Stock gudang slow 1 moving plumbing 2 ","sec":"Plumbing","pr":"SP/PR/2026/05/0226","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-E2B","ang":380000000,"rel":0},{"id":110,"n":"PLUMBING - SUPPLY MATERIAL 1,00 LOT Suplly material Pekerjaan penggantian Pipa V","sec":"Plumbing","pr":"SP/PR/2026/05/0240","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"OPEX-E2B","ang":380000000,"rel":0},{"id":138,"n":"","sec":"Plumbing","pr":"","pic":"Nuriyadhus","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":139,"n":"","sec":"Plumbing","pr":"","pic":"","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"","ang":0,"rel":0},{"id":140,"n":"Nama Milestone","sec":"Plumbing","pr":"Target\nSelesai","pic":"Status Awal ▼","tgt":"","sts":"🔵 On-Progress","prg":15.0,"msd":1,"bt":"PIC","ang":0,"rel":0}],"m":{"1":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🔵 On-Progress"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"2":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🔵 On-Progress"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"3":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"4":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"5":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"6":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"7":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🔵 On-Progress"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"8":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"9":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"10":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"11":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"12":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"13":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"14":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"15":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"16":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"17":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"18":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"19":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"20":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"21":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"22":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"23":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"24":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"25":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"26":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"27":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"28":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"29":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"30":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"31":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"32":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"33":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"34":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"35":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"36":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"37":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🔵 On-Progress"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"38":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🔵 On-Progress"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"39":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"40":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"41":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"42":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"43":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"44":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"45":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"46":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"47":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"48":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"49":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"50":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"51":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"52":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"53":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"54":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"55":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"56":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"57":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"58":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"59":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"60":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"61":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"62":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"63":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"64":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"65":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"🟢 Selesai"}],"66":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"🟢 Selesai"}],"67":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"68":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"🟢 Selesai"}],"69":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"70":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"71":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"72":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"🟢 Selesai"}],"73":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"74":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"75":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"🔵 On-Progress"}],"76":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"🔵 On-Progress"}],"77":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"78":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"79":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"🟢 Selesai"}],"80":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"🔵 On-Progress"}],"81":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"82":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"83":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"84":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"85":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"86":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"87":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"88":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"89":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"90":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"91":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"92":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"93":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"94":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"95":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"96":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"97":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"98":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"99":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"🟢 Selesai"}],"100":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"101":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"102":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"103":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"104":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"105":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"🟢 Selesai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"🟢 Selesai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"🟢 Selesai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"🟢 Selesai"}],"106":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"107":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"108":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🟢 Selesai"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"109":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"110":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"111":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"112":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"113":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"114":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"115":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"116":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"117":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"118":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"119":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"120":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"121":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"122":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"123":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"124":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"125":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"126":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"127":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"128":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"129":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"130":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"131":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"132":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"133":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"134":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"135":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"136":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"137":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"138":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"139":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}],"140":[{"n":1,"nm":"PR & Design Concept","st":"🟢 Selesai"},{"n":2,"nm":"Finalisasi, Tender Kickoff & PO","st":"🔵 On-Progress"},{"n":3,"nm":"Contract Award & PKS","st":"⚪ Belum Mulai"},{"n":4,"nm":"Mobilisasi, Final Design, Construct Work, Testing & Pun","st":"⚪ Belum Mulai"},{"n":5,"nm":"Final HO & Documentation / BAST 1","st":"⚪ Belum Mulai"},{"n":6,"nm":"Defect Liability / BAST 2 (Retention)","st":"⚪ Belum Mulai"}]},"b":{"CAPEX-B6":{"a":500000000,"r":0,"c":1},"OPEX-E2H":{"a":50000000,"r":44727000,"c":2},"OPEX-E2A":{"a":365000000,"r":33981050,"c":9},"CAPEX-B1":{"a":300000000,"r":0,"c":3},"CAPEX-B3":{"a":150000000,"r":84660000,"c":1},"CAPEX-B11":{"a":250000000,"r":255000000,"c":2},"CAPEX-B13":{"a":375000000,"r":343935000,"c":1},"CAPEX-B8":{"a":320000000,"r":304000000,"c":1},"CAPEX-B5":{"a":200000000,"r":0,"c":1},"CAPEX-B2":{"a":500000000,"r":397300200,"c":2},"CAPEX-B14":{"a":400000000,"r":0,"c":1},"CAPEX-E1":{"a":350000000,"r":0,"c":1},"CAPEX-B10":{"a":85000000,"r":0,"c":1},"OPEX-PM.B1":{"a":140000000,"r":0,"c":1},"CAPEX-B15":{"a":30000000,"r":0,"c":1},"CAPEX-G10":{"a":2500000000,"r":169400000,"c":2},"OPEX-PM.F1":{"a":200000000,"r":68076200,"c":5},"OPEX-E2D":{"a":245000000,"r":9836323,"c":8},"OPEX-E2L":{"a":1050000000,"r":101745300,"c":5},"CAPEX-H1":{"a":100000000,"r":51291900,"c":4},"CAPEX-H2":{"a":1000000000,"r":355000000,"c":3},"CAPEX-G4":{"a":400000000,"r":0,"c":1},"CAPEX-G11":{"a":3100000000,"r":1804000000,"c":2},"CAPEX-G12":{"a":1500000000,"r":445500000,"c":2},"CAPEX-G9":{"a":5300000000,"r":550000000,"c":2},"OPEX-PM.E5":{"a":150000000,"r":0,"c":1},"CAPEX-G6":{"a":500000000,"r":0,"c":2},"CAPEX-F3":{"a":800000000,"r":0,"c":1},"CAPEX-D2":{"a":2000000000,"r":1732510114,"c":2},"OPEX-E2B":{"a":380000000,"r":29703857,"c":6},"CAPEX-A1":{"a":300000000,"r":146401200,"c":3},"CAPEX-A10":{"a":300000000,"r":0,"c":1},"CAPEX-A2":{"a":800000000,"r":373774750,"c":1},"OPEX-PM.A1":{"a":250000000,"r":39150000,"c":1},"CAPEX-A9":{"a":50000000,"r":23294700,"c":1},"CAPEX-A8":{"a":100000000,"r":0,"c":1},"CAPEX-A3":{"a":200000000,"r":0,"c":1},"CAPEX-C4":{"a":1800000000,"r":0,"c":1},"CAPEX-C3":{"a":1200000000,"r":0,"c":1},"OPEX-E2C":{"a":515000000,"r":28350000,"c":7},"OPEX-C1":{"a":120000000,"r":0,"c":1},"OPEX-C2":{"a":50000000,"r":0,"c":1},"CAPEX-C8":{"a":600000000,"r":30518015,"c":2},"CAPEX-D4":{"a":800000000,"r":0,"c":3},"OPEX-E2F":{"a":230000000,"r":27499500,"c":2},"OPEX-E1L":{"a":93033000,"r":0,"c":1},"OPEX-E2i":{"a":240000000,"r":0,"c":2},"OPEX-PM.E7":{"a":300000000,"r":4500000,"c":2},"OPEX-E1i":{"a":19825000,"r":19250000,"c":1},"OPEX-E2G":{"a":30000000,"r":8426000,"c":1},"OPEX-PM.D3":{"a":200000000,"r":0,"c":1},"CAPEX-A4":{"a":150000000,"r":0,"c":1}}};
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+const fmt=n=>new Intl.NumberFormat('id-ID').format(Math.round(n));
+const fmtM=n=>n>=1e9?'Rp '+(n/1e9).toFixed(2)+'M':n>=1e6?'Rp '+(n/1e6).toFixed(1)+'jt':'Rp '+fmt(n);
+const pc=p=>p>=80?'#1D9E75':p>=50?'#2563eb':p>=30?'#d97706':'#dc2626';
+
+function sp(s){
+  if(s.includes('Selesai'))return'<span class="pl pd">✓ Selesai</span>';
+  if(s.includes('On-Progress'))return'<span class="pl pp">● On-Progress</span>';
+  if(s.includes('Terlambat'))return'<span class="pl pl2">⚠ Terlambat</span>';
+  if(s.includes('On-Hold'))return'<span class="pl ph">⏸ On-Hold</span>';
+  return'<span class="pl pw">○ Belum Mulai</span>';}
+function stag(s){return`<span class="stag" style="background:${SB[s]||'#f3f4f6'};color:${SC[s]||'#333'};">${s||'-'}</span>`;}
+
+// ─── CSV PARSER ───────────────────────────────────────────────────────────────
+function parseRow(row){
+  const cols=[];let cur='',inQ=false;
+  for(const ch of row){
+    if(ch==='"'){inQ=!inQ;}
+    else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}
+    else cur+=ch;
+  }
+  cols.push(cur.trim());return cols;
+}
+
+// Smart column detector — finds header row and maps column names
+function detectCols(rows){
+  for(let i=0;i<Math.min(rows.length,15);i++){
+    const r=rows[i];
+    const hasNo=r.some(c=>/^no\.?$/i.test(c.trim()));
+    const hasNama=r.some(c=>/nama/i.test(c));
+    const hasStatus=r.some(c=>/status/i.test(c));
+    if(hasNo&&hasNama&&hasStatus){
+      const m={};
+      r.forEach((h,idx)=>{
+        const hl=h.toLowerCase().trim();
+        if(/^no\.?$/.test(hl))m.id=idx;
+        if(/nama/i.test(hl)&&!m.n)m.n=idx;
+        if(/^section$/i.test(hl)&&!m.sec)m.sec=idx;
+        if(/^section$/i.test(hl)&&m.sec!==undefined)m.sec2=idx;
+        if(/^pic$/i.test(hl))m.pic=idx;
+        if(/target/i.test(hl))m.tgt=idx;
+        if(/^status$/i.test(hl))m.sts=idx;
+        if(/progress/i.test(hl)&&/\%|berbobot/i.test(hl))m.prg=idx;
+        if(/progress/i.test(hl)&&!m.prg)m.prg=idx;
+        if(/ms.*selesai|selesai.*ms/i.test(hl))m.msd=idx;
+        if(/no\.?\s*pr|pr\s*no/i.test(hl))m.pr=idx;
+        if(/^budget$/i.test(hl)||/budget.*code/i.test(hl))m.bt=idx;
+        if(/anggaran/i.test(hl))m.ang=idx;
+        if(/realisasi|pengeluaran/i.test(hl))m.rel=idx;
+      });
+      console.log('[WT] Header at row',i,'colmap:',m);
+      return{hdr:i,m};
+    }
+  }
+  return null;
+}
+
+function csvToProjects(csv){
+  const rows=csv.split('\n').filter(r=>r.trim()).map(parseRow);
+  const det=detectCols(rows);
+  if(!det){console.warn('[WT] Header not detected');return[];}
+  const{hdr,m}=det;
+  const data=[];
+  for(let i=hdr+1;i<rows.length;i++){
+    const r=rows[i];
+    const idVal=m.id!==undefined?r[m.id]||'':'';
+    if(!idVal||!/^\d+$/.test(idVal.trim()))continue;
+    const prgRaw=m.prg!==undefined?parseFloat(r[m.prg])||0:0;
+    const prg=prgRaw>1?Math.round(prgRaw*10)/10:Math.round(prgRaw*100*10)/10;
+    let bt=(m.bt!==undefined?r[m.bt]||'':'').trim();
+    if(bt==='Opex.PM B1')bt='OPEX-PM.B1';
+    const sec=m.sec2!==undefined?r[m.sec2]||r[m.sec]||'':m.sec!==undefined?r[m.sec]||'':'';
+    data.push({
+      id:+idVal,
+      n:(m.n!==undefined?r[m.n]||'':'').substring(0,80),
+      sec:sec.replace(/"/g,'').trim(),
+      pr:m.pr!==undefined?r[m.pr]||'':'',
+      pic:m.pic!==undefined?r[m.pic]||'':'',
+      tgt:m.tgt!==undefined?r[m.tgt]||'':'',
+      sts:m.sts!==undefined?r[m.sts]||'⚪ Belum Mulai':'⚪ Belum Mulai',
+      prg,
+      msd:m.msd!==undefined?parseInt(r[m.msd])||0:0,
+      bt,
+      ang:m.ang!==undefined?parseFloat(r[m.ang])||0:0,
+      rel:m.rel!==undefined?parseFloat(r[m.rel])||0:0,
+    });
+  }
+  return data;
+}
+
+// ─── DATA LOADING ─────────────────────────────────────────────────────────────
+function loadEmbed(){
+  P=EMB.p||[];M=EMB.m||{};B=EMB.b||{};
+}
+
+function computeB(){
+  B={};
+  P.forEach(p=>{
+    const c=p.bt;if(!c||c==='PIC')return;
+    if(!B[c])B[c]={a:0,r:0,c:0};
+    if(!B[c].a&&p.ang>0)B[c].a=p.ang;
+    B[c].r+=p.rel;B[c].c++;
+  });
+}
+
+function setSyncStatus(type,msg){
+  const b=document.getElementById('sy-badge');
+  const d=document.getElementById('sy-dot');
+  const t=document.getElementById('sy-txt');
+  b.className='live-badge '+type;
+  d.className='dot '+(type==='live'?'dot-g':type==='local'?'dot-y':'dot-r');
+  t.textContent=msg;
+}
+
+async function fetchCSV(url,timeoutMs=8000){
+  const ctrl=new AbortController();
+  const tid=setTimeout(()=>ctrl.abort(),timeoutMs);
+  try{
+    const r=await fetch(url,{cache:'no-cache',signal:ctrl.signal});
+    clearTimeout(tid);
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const txt=await r.text();
+    if(txt.includes('<!DOCTYPE')||txt.includes('<html'))throw new Error('Response is HTML not CSV');
+    return txt;
+  }catch(e){clearTimeout(tid);throw e;}
+}
+
+async function trySheets(){
+  const sid=localStorage.getItem('sh_id')||CFG.sheetId;
+  const gid=localStorage.getItem('sh_gid')||CFG.gid;
+  // Try 3 URL formats
+  const urls=[
+    `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&gid=${gid}`,
+    `https://docs.google.com/spreadsheets/d/e/2PACX-1vRqMVVwDUcGpmRNlfdg0xK_Jf_XjqXtK1Cpo87WtH5E6An4bF1i8_xL-RhaHsaSiw/pub?gid=${gid}&single=true&output=csv`,
+    `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv&gid=${gid}`
+  ];
+  for(const url of urls){
+    try{
+      document.getElementById('lo-msg').textContent='Menghubungi Google Sheets...';
+      const csv=await fetchCSV(url,8000);
+      const projects=csvToProjects(csv);
+      if(projects.length>=5){
+        P=projects;
+        computeB();
+        const t=new Date().toLocaleTimeString('id-ID');
+        setSyncStatus('live','Live Sheets · '+t);
+        document.getElementById('ai-count').textContent=P.length;
+        console.log('[WT] Loaded',P.length,'projects from Sheets');
+        return true;
+      }
+    }catch(e){console.warn('[WT] URL failed:',url.split('/')[6]?.substring(0,20),e.message);}
+  }
+  setSyncStatus('local','Data lokal (Sheets offline)');
+  return false;
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function rAll(){
+  try{rDB();}catch(e){console.error('rDB:',e);}
+  try{rWT(P);}catch(e){console.error('rWT:',e);}
+}
+
+function summ(){
+  return{
+    total:P.length,
+    done:P.filter(p=>p.sts.includes('Selesai')).length,
+    prog:P.filter(p=>p.sts.includes('On-Progress')).length,
+    avg:P.length?Math.round(P.reduce((a,p)=>a+p.prg,0)/P.length*10)/10:0,
+    tangg:Object.values(B).reduce((a,v)=>a+v.a,0),
+    treal:Object.values(B).reduce((a,v)=>a+v.r,0)
+  };
+}
+
+function rDB(){
+  const S=summ();
+  const pct=S.total?Math.round(S.done/S.total*100):0;
+  document.getElementById('met-r').innerHTML=`
+    <div class="mc"><div class="mc-l">Total Pekerjaan</div><div class="mc-v">${S.total}</div><div class="mc-s">PR 2026</div></div>
+    <div class="mc gr"><div class="mc-l">Selesai</div><div class="mc-v">${S.done}</div><div class="mc-s">${pct}%</div></div>
+    <div class="mc bl"><div class="mc-l">On-Progress</div><div class="mc-v">${S.prog}</div><div class="mc-s">Aktif</div></div>
+    <div class="mc am"><div class="mc-l">Avg Progress</div><div class="mc-v">${S.avg}%</div><div class="mc-s">Semua section</div></div>`;
+
+  const sm={};P.forEach(p=>{if(!sm[p.sec])sm[p.sec]={s:0,c:0};sm[p.sec].s+=p.prg;sm[p.sec].c++;});
+  document.getElementById('sbars').innerHTML=Object.entries(sm).filter(([s])=>s).map(([s,v])=>{
+    const a=Math.round(v.s/v.c);
+    return`<div class="sbar"><div class="sbar-l">${s}</div>
+      <div class="sbar-tr"><div class="sbar-f" style="width:${a}%;background:${pc(a)};"></div></div>
+      <div class="sbar-p">${a}%</div></div>`;}).join('');
+
+  if(SC2)SC2.destroy();
+  SC2=new Chart(document.getElementById('sc'),{type:'doughnut',
+    data:{labels:['Selesai','On-Progress','Belum'],
+      datasets:[{data:[S.done,S.prog,S.total-S.done-S.prog],
+        backgroundColor:['#1D9E75','#2563eb','#9ca3af'],borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:10}}}}});
+
+  const secs=Object.keys(SC),ag=[],re=[];
+  secs.forEach(s=>{const ps=P.filter(p=>p.sec===s);ag.push(ps.reduce((a,p)=>a+p.ang,0)/1e9);re.push(ps.reduce((a,p)=>a+p.rel,0)/1e9);});
+  if(BC2)BC2.destroy();
+  BC2=new Chart(document.getElementById('bc'),{type:'bar',
+    data:{labels:secs.map(s=>s.substring(0,5)),datasets:[
+      {label:'Anggaran',data:ag,backgroundColor:'#93c5fd',borderRadius:3},
+      {label:'Realisasi',data:re,backgroundColor:'#34d399',borderRadius:3}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{font:{size:9},boxWidth:9}}},
+      scales:{y:{ticks:{font:{size:9},callback:v=>v.toFixed(1)+'M'}},x:{ticks:{font:{size:9}}}}}});
+
+  const low=P.filter(p=>p.prg<30&&p.sts.includes('On-Progress')).slice(0,5);
+  document.getElementById('alrt').innerHTML=low.length?low.map(p=>`
+    <div class="al"><div class="ald" style="background:${p.prg<15?'#dc2626':'#d97706'};"></div>
+    <div><div class="alt">${p.n.substring(0,52)}...</div>
+    <div class="alm">${p.sec||'-'} · ${p.prg}% · <button class="lk" onclick="om(${p.id})">MS</button></div></div></div>`)
+    .join(''):'<p style="font-size:11px;color:var(--t2);text-align:center;padding:14px;">✅ Tidak ada alert kritis</p>';
+}
+
+function rWT(data){
+  document.getElementById('wtb').innerHTML=data.map(p=>`<tr>
+    <td style="font-weight:600;color:var(--t2);">${p.id}</td>
+    <td style="max-width:180px;white-space:normal;">${p.n||'-'}</td>
+    <td>${stag(p.sec)}</td>
+    <td><span style="font-size:9px;padding:2px 5px;border-radius:4px;background:${p.bt.startsWith('CAPEX')?'#dbeafe':'#dcfce7'};color:${p.bt.startsWith('CAPEX')?'#1e40af':'#166534'};font-weight:600;">${p.bt||'-'}</span></td>
+    <td>${sp(p.sts)}</td>
+    <td><div class="pbar-w"><div class="pbar"><div class="pbar-f" style="width:${p.prg}%;background:${pc(p.prg)};"></div></div><span style="font-size:9px;color:var(--t2);">${p.prg}%</span></div></td>
+    <td style="color:var(--t2);">${p.msd}/6</td>
+    <td>${p.ang>0?fmtM(p.ang):'-'}</td>
+    <td><button class="lk" onclick="om(${p.id})">Detail</button></td>
+    </tr>`).join('');
+  document.getElementById('wc').textContent=`${data.length} pekerjaan`;}
+
+function fwt(){
+  const q=document.getElementById('q').value.toLowerCase(),
+    s=document.getElementById('fs').value,
+    st2=document.getElementById('fst').value,
+    bt=document.getElementById('fbt').value;
+  rWT(P.filter(p=>(!q||(p.n.toLowerCase().includes(q)||p.pr.toLowerCase().includes(q)))&&
+    (!s||p.sec===s)&&(!st2||p.sts.includes(st2))&&(!bt||p.bt.includes(bt))));}
+
+function rMS(data){
+  document.getElementById('msl').innerHTML=data.map(p=>{
+    const ms=M[String(p.id)]||[];
+    return`<div class="cd" style="margin-bottom:9px;">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;">
+        <b style="font-size:11px;color:var(--t2);">#${p.id}</b>${stag(p.sec)}
+        <span style="flex:1;font-size:12px;font-weight:600;">${p.n}</span>
+        <div class="pbar-w"><div class="pbar" style="width:70px;"><div class="pbar-f" style="width:${p.prg}%;background:${pc(p.prg)};"></div></div><span style="font-size:10px;color:var(--t2);">${p.prg}%</span></div>
+      </div>
+      ${ms.length>0?ms.map((m,i)=>{
+        const done=m.st.includes('Selesai'),prog=m.st.includes('On-Progress');
+        const nb=done?'#1D9E75':prog?'#2563eb':'#e5e7eb';
+        return`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #f9fafb;">
+          <div style="width:18px;height:18px;border-radius:50%;background:${nb};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0;">${i+1}</div>
+          <div style="flex:1;font-size:10px;">${m.nm||MN[i]||''}</div>
+          <span style="font-size:8px;padding:1px 4px;border-radius:3px;background:#f3f4f6;color:var(--t2);">${Math.round(MW[i]*100)}%</span>
+          <span style="font-size:9px;padding:1px 5px;border-radius:99px;background:${done?'#dcfce7':prog?'#dbeafe':'#f3f4f6'};color:${done?'#166534':prog?'#1d4ed8':'#6b7280'};white-space:nowrap;">${done?'Selesai':prog?'On-Progress':'Belum'}</span>
+        </div>`}).join(''):'<p style="font-size:10px;color:var(--t2);padding:6px 0;">Data milestone dari Google Sheets</p>'}
+    </div>`;}).join('');
+  document.getElementById('mc').textContent=`${data.length} proyek`;}
+
+function fms(){
+  const q=document.getElementById('mq').value.toLowerCase(),s=document.getElementById('mfs').value;
+  rMS(P.filter(p=>(!q||(p.n.toLowerCase().includes(q)||p.pr.toLowerCase().includes(q)))&&(!s||p.sec===s)));}
+
+function rBG(){
+  const S=summ();const pct=S.tangg>0?S.treal/S.tangg*100:0;
+  document.getElementById('bgm').innerHTML=`
+    <div class="mc"><div class="mc-l">Total Anggaran</div><div class="mc-v" style="font-size:15px;">${fmtM(S.tangg)}</div><div class="mc-s">PR 2026</div></div>
+    <div class="mc gr"><div class="mc-l">Total Realisasi</div><div class="mc-v" style="font-size:15px;">${fmtM(S.treal)}</div><div class="mc-s">${pct.toFixed(1)}% terpakai</div></div>
+    <div class="mc bl"><div class="mc-l">Sisa Budget</div><div class="mc-v" style="font-size:15px;">${fmtM(S.tangg-S.treal)}</div><div class="mc-s">${(100-pct).toFixed(1)}% tersisa</div></div>`;
+  document.getElementById('bgtb').innerHTML=Object.entries(B).sort((a,b)=>a[0].localeCompare(b[0])).map(([c,d])=>{
+    const s=d.a-d.r,p=d.a>0?d.r/d.a*100:0,cap=c.startsWith('CAPEX');
+    const sts=p>100?'🔴 Over Budget':p>=90?'🟠 Hampir Habis':p>=50?'🟡 Normal':'🟢 Aman';
+    return`<tr>
+      <td><span style="font-size:9px;padding:2px 6px;border-radius:4px;background:${cap?'#dbeafe':'#dcfce7'};color:${cap?'#1e40af':'#166534'};font-weight:600;">${c}</span></td>
+      <td style="font-size:10px;font-weight:600;color:${cap?'#1e40af':'#166534'};">${cap?'CAPEX':'OPEX'}</td>
+      <td style="text-align:right;">${d.a>0?fmtM(d.a):'-'}</td>
+      <td style="text-align:right;">${d.r>0?fmtM(d.r):'-'}</td>
+      <td style="text-align:right;font-weight:600;color:${s<0?'var(--red)':'var(--pri)'};">${d.a>0?fmtM(s):'-'}</td>
+      <td style="text-align:right;font-weight:600;color:${p>100?'var(--red)':p>=90?'var(--amb)':'var(--pri)'};">${d.a>0?p.toFixed(1)+'%':'-'}</td>
+      <td>${sts}</td><td style="text-align:center;">${d.c}</td>
+    </tr>`}).join('');}
+
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+function om(id){
+  const p=P.find(x=>x.id===id);if(!p)return;
+  const ms=M[String(id)]||[];
+  document.getElementById('mtit').textContent=`#${id} — ${p.n}`;
+  document.getElementById('msub').innerHTML=`${stag(p.sec)} &nbsp;${sp(p.sts)}&nbsp; <b>${p.prg}%</b> &nbsp; ${p.pr||''}`;
+  document.getElementById('mbod').innerHTML=`
+    <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;margin-bottom:10px;">
+      <span><b>PIC:</b> ${p.pic||'-'}</span><span><b>Code:</b> ${p.bt||'-'}</span>
+      <span><b>Anggaran:</b> ${p.ang>0?fmtM(p.ang):'-'}</span><span><b>Realisasi:</b> ${p.rel>0?fmtM(p.rel):'-'}</span>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--t2);margin-bottom:7px;">MILESTONE PROGRESS</div>
+    ${ms.length>0?ms.map((m,i)=>{
+      const done=m.st.includes('Selesai'),prog=m.st.includes('On-Progress');
+      const nb=done?'#1D9E75':prog?'#2563eb':'#d1d5db';
+      const bg=done?'#dcfce7':prog?'#dbeafe':'#f3f4f6';
+      const tc=done?'#166534':prog?'#1d4ed8':'#4b5563';
+      return`<div style="display:flex;gap:9px;padding:8px 0;border-bottom:1px solid #f5f5f5;align-items:flex-start;">
+        <div style="width:22px;height:22px;border-radius:50%;background:${nb};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;">${i+1}</div>
+        <div style="flex:1;"><div style="font-size:12px;font-weight:600;margin-bottom:2px;">${m.nm||MN[i]}</div>
+          <span style="font-size:9px;padding:2px 7px;border-radius:99px;background:${bg};color:${tc};font-weight:600;">${m.st}</span></div>
+        <span style="font-size:9px;padding:2px 6px;border-radius:4px;background:#f3f4f6;color:var(--t2);flex-shrink:0;">${Math.round(MW[i]*100)}%</span>
+      </div>`}).join(''):'<p style="font-size:11px;color:var(--t2);">Milestone data dari Google Sheets</p>'}`;
+  document.getElementById('mbg').classList.add('on');}
+function cm(){document.getElementById('mbg').classList.remove('on');}
+
+// ─── VIEWS ────────────────────────────────────────────────────────────────────
+const TT={db:'Dashboard',wt:'Work Tracer',ms:'Milestones',bg:'Budget per Kode',ai:'AI Assistant',st:'Pengaturan'};
+function go(id){
+  document.querySelectorAll('.vw').forEach(v=>v.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('vw-'+id).classList.add('on');
+  document.querySelectorAll('.nb').forEach(b=>{if(b.textContent.trim().startsWith(TT[id].substring(0,4)))b.classList.add('on');});
+  document.getElementById('pt').textContent=TT[id];
+  if(id==='ai')initAI();
+  if(id==='ms'&&!document.getElementById('msl').innerHTML)rMS(P);
+  if(id==='bg'&&!document.getElementById('bgtb').innerHTML)rBG();}
+
+// ─── AI ───────────────────────────────────────────────────────────────────────
+const QQ=['Ringkasan progress hari ini','Section paling lambat?','Budget over budget?',
+  'Total realisasi semua section','Proyek hampir selesai?','Alert pekerjaan kritis?'];
+
+function initAI(){
+  const qq=document.getElementById('qqs');
+  if(!qq.innerHTML)qq.innerHTML=QQ.map(q=>`<button class="qq" onclick="askQ('${q}')">${q}</button>`).join('');
+  if(!document.getElementById('msgs').children.length)
+    addM('ai','Halo Pak Adi! Saya AI WorkTracer Wisma 46. Data <b>'+P.length+' pekerjaan PR 2026</b> sudah tersedia. Tanya apa saja!');
+  const k=localStorage.getItem('gk');
+  const el=document.getElementById('ais');
+  if(k){el.textContent='● Aktif';el.style.background='#f0fdf4';el.style.color='#166534';}
+  else{el.textContent='⚠ Set Key';el.style.background='#fefce8';el.style.color='#854d0e';}}
+
+function addM(role,html,elId){
+  const msgs=document.getElementById('msgs');
+  const d=document.createElement('div');d.className='msg '+role;if(elId)d.id=elId;
+  d.innerHTML=`<div class="av2">${role==='ai'?'🤖':'AS'}</div><div class="bbl">${html}</div>`;
+  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;return d;}
+
+function buildCtx(){
+  const S=summ();const ss={};
+  P.forEach(p=>{if(!ss[p.sec])ss[p.sec]={c:0,d:0,s:0,a:0,r:0};ss[p.sec].c++;
+    if(p.sts.includes('Selesai'))ss[p.sec].d++;ss[p.sec].s+=p.prg;ss[p.sec].a+=p.ang;ss[p.sec].r+=p.rel;});
+  const over=Object.entries(B).filter(([,d])=>d.a>0&&d.r>d.a).map(([c,d])=>`${c}(${(d.r/1e6).toFixed(0)}jt>${(d.a/1e6).toFixed(0)}jt)`).join(',');
+  const secSum=Object.entries(ss).map(([s,v])=>
+    `${s}:${v.c}proj,${v.d}done,avg${Math.round(v.s/v.c)}%,Rp${(v.a/1e9).toFixed(2)}M`).join('\n');
+  return`AI Assistant WorkTracer Wisma 46 Kota BNI. Chief Eng: Adi Saputra S.T.
+DATA ${S.total} pekerjaan PR 2026:
+Selesai:${S.done}|On-Progress:${S.prog}|Avg:${S.avg}%
+Anggaran:Rp${(S.tangg/1e9).toFixed(2)}M|Realisasi:Rp${(S.treal/1e9).toFixed(2)}M
+${secSum}
+Over Budget:${over||'Tidak ada'}
+MS Bobot: MS1=15%,MS2=20%,MS3=5%,MS4=50%,MS5=5%,MS6=5%
+Jawab singkat dalam Bahasa Indonesia.`;}
+
+async function sendAI(){
+  const k=localStorage.getItem('gk');
+  if(!k){addM('ai','⚠️ Groq API Key belum diisi. Buka <b>⚙️ Pengaturan</b> → isi API Key (gratis di console.groq.com).');return;}
+  const inp=document.getElementById('ai-in');
+  const q=inp.value.trim();if(!q)return;
+  inp.value='';addM('user',q);
+  const ty=addM('ai','<span class="ty"><span></span><span></span><span></span></span>','ty-m');
+  document.getElementById('aib').disabled=true;
+  try{
+    const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+k},
+      body:JSON.stringify({model:'llama-3.1-8b-instant',max_tokens:500,
+        messages:[{role:'system',content:buildCtx()},{role:'user',content:q}]})});
+    const d=await r.json();ty.remove();
+    addM('ai',(d.choices&&d.choices[0]?d.choices[0].message.content:'Error: '+(d.error?.message||'?')).replace(/\n/g,'<br>'));
+  }catch(e){ty.remove();addM('ai','Gagal: '+e.message);}
+  document.getElementById('aib').disabled=false;}
+function askQ(q){document.getElementById('ai-in').value=q;sendAI();}
+
+// ─── SETTINGS ────────────────────────────────────────────────────────────────
+function saveSt(){
+  const sid=document.getElementById('sh-id').value.trim();
+  const sgid=document.getElementById('sh-gid').value.trim();
+  const gk=document.getElementById('gkey').value.trim();
+  if(sid)localStorage.setItem('sh_id',sid);
+  if(sgid)localStorage.setItem('sh_gid',sgid);
+  if(gk)localStorage.setItem('gk',gk);
+  document.getElementById('stmsg').innerHTML='✅ Tersimpan! <a href="#" onclick="reload();return false;">Reload data →</a>';
+  if(document.getElementById('vw-ai').classList.contains('on'))initAI();}
+
+async function testSh(){
+  const sid=document.getElementById('sh-id').value.trim()||CFG.sheetId;
+  const gid=document.getElementById('sh-gid').value.trim()||CFG.gid;
+  document.getElementById('stmsg').innerHTML='⏳ Menguji koneksi...';
+  const urls=[
+    `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&gid=${gid}`,
+    `https://docs.google.com/spreadsheets/d/e/2PACX-1vRqMVVwDUcGpmRNlfdg0xK_Jf_XjqXtK1Cpo87WtH5E6An4bF1i8_xL-RhaHsaSiw/pub?gid=${gid}&single=true&output=csv`
+  ];
+  for(const url of urls){
+    try{
+      const csv=await fetchCSV(url,8000);
+      const projects=csvToProjects(csv);
+      if(projects.length>=5){
+        document.getElementById('stmsg').innerHTML=`<span style="color:#166534;font-weight:600;">✅ Berhasil! ${projects.length} pekerjaan ditemukan.</span><br>Sample: #${projects[0].id} ${projects[0].n.substring(0,40)}`;
+        return;
+      }else{
+        document.getElementById('stmsg').innerHTML=`⚠️ Sheet terbuka tapi data kurang (${projects.length} baris). Cek GID sheet Work Tracer.`;
+      }
+    }catch(e){
+      document.getElementById('stmsg').innerHTML=`❌ ${e.message}`;
+    }
+  }
+}
+
+async function testAI(){
+  const k=document.getElementById('gkey').value.trim()||localStorage.getItem('gk');
+  if(!k){document.getElementById('stmsg').textContent='⚠ Isi API Key dulu';return;}
+  document.getElementById('stmsg').textContent='⏳ Menguji AI...';
+  try{
+    const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+k},
+      body:JSON.stringify({model:'llama-3.1-8b-instant',max_tokens:10,messages:[{role:'user',content:'hi'}]})});
+    const d=await r.json();
+    document.getElementById('stmsg').textContent=d.choices?'✅ AI aktif dan siap!':'❌ '+d.error?.message;
+  }catch(e){document.getElementById('stmsg').textContent='❌ '+e.message;}}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+async function reload(){
+  if(SC2){SC2.destroy();SC2=null;}if(BC2){BC2.destroy();BC2=null;}
+  document.getElementById('msl').innerHTML='';
+  document.getElementById('bgtb').innerHTML='';
+  await trySheets();
+  rAll();
+}
+
+window.addEventListener('DOMContentLoaded',async()=>{
+  // 1. Load embedded data immediately — web always works
+  loadEmbed();
+  // 2. Fill settings
+  document.getElementById('sh-id').value=localStorage.getItem('sh_id')||CFG.sheetId;
+  document.getElementById('sh-gid').value=localStorage.getItem('sh_gid')||CFG.gid;
+  document.getElementById('gkey').value=localStorage.getItem('gk')||'';
+  // 3. Render immediately with embedded data
+  rAll();
+  // 4. Hide loading screen
+  document.getElementById('lo').classList.add('hd');
+  // 5. Try to get live data in background (no blocking)
+  trySheets().then(ok=>{if(ok)rAll();}).catch(()=>{});
+  // 6. Auto-refresh every 5 minutes
+  setInterval(()=>trySheets().then(ok=>{if(ok)rAll();}).catch(()=>{}), 300000);
+});
+</script>
+</body>
+</html>
