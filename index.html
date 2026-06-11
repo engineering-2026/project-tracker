@@ -372,21 +372,46 @@ function detectCols(rows){
 }
 
 function csvToProjects(csv){
+  // Parse number - handles: "0.4", "40.0%", "36.3%", "500.000.000", "Rp 500,000"
+  function parseNum(v,isProgress=false){
+    if(!v&&v!==0)return 0;
+    const s=String(v).trim();
+    const hasPct=s.includes('%');
+    const cleaned=s.replace(/[Rp\s]/gi,'');
+    const dots=cleaned.split('.').length-1;
+    const commas=cleaned.split(',').length-1;
+    let num;
+    // Indonesian format: 500.000.000 (dots=thousands) or 500,000,000 (commas=thousands)
+    if(dots>1){num=parseFloat(cleaned.replace(/\./g,'').replace(',','.'));}
+    else if(commas>1){num=parseFloat(cleaned.replace(/,/g,''));}
+    else{num=parseFloat(cleaned.replace(/[^0-9.-]/g,''));}
+    if(isNaN(num))return 0;
+    if(isProgress){
+      if(hasPct)return Math.min(Math.round(num*10)/10,100); // "36.3%" → 36.3
+      if(num<=1)return Math.min(Math.round(num*1000)/10,100); // "0.363" → 36.3
+      if(num<=100)return Math.min(Math.round(num*10)/10,100); // "36.3" → 36.3
+      return 0; // "363.2" without % = broken, discard
+    }
+    return num;
+  }
+
   const rows=csv.split('\n').filter(r=>r.trim()).map(parseRow);
   const det=detectCols(rows);
   if(!det){console.warn('[WT] Header not detected');return[];}
   const{hdr,m}=det;
+  console.log('[WT] Columns detected:',JSON.stringify(m));
+
   const data=[];
   for(let i=hdr+1;i<rows.length;i++){
     const r=rows[i];
     const idVal=m.id!==undefined?r[m.id]||'':'';
     if(!idVal||!/^\d+$/.test(idVal.trim()))continue;
-    const prgRaw=m.prg!==undefined?parseFloat(r[m.prg])||0:0;
-    const prgParsed=parseFloat((r[m.prg]||'').replace(/[^0-9.-]/g,''))||0;
-    const prg=prgParsed>1?Math.round(prgParsed*10)/10:Math.round(prgParsed*1000)/10;
+    const prg=parseNum(m.prg!==undefined?r[m.prg]:'',true);
     let bt=(m.bt!==undefined?r[m.bt]||'':'').trim();
     if(bt==='Opex.PM B1')bt='OPEX-PM.B1';
     const sec=m.sec2!==undefined?r[m.sec2]||r[m.sec]||'':m.sec!==undefined?r[m.sec]||'':'';
+    // Log first row for debugging
+    if(i===hdr+1)console.log('[WT] First data row prg raw:',m.prg!==undefined?r[m.prg]:'N/A','→',prg+'%');
     data.push({
       id:+idVal,
       n:(m.n!==undefined?r[m.n]||'':'').substring(0,80),
@@ -398,10 +423,11 @@ function csvToProjects(csv){
       prg,
       msd:m.msd!==undefined?parseInt(r[m.msd])||0:0,
       bt,
-      ang:m.ang!==undefined?parseFloat((r[m.ang]||'').replace(/[^0-9.-]/g,''))||0:0,
-      rel:m.rel!==undefined?parseFloat((r[m.rel]||'').replace(/[^0-9.-]/g,''))||0:0,
+      ang:parseNum(m.ang!==undefined?r[m.ang]:''),
+      rel:parseNum(m.rel!==undefined?r[m.rel]:''),
     });
   }
+  console.log('[WT] Parsed',data.length,'projects from CSV');
   return data;
 }
 
@@ -528,6 +554,13 @@ async function trySheets(){
         setSyncStatus('live','Live Sheets · '+t);
         document.getElementById('ai-count').textContent=P.length;
         console.log('[WT] Loaded',P.length,'projects from Sheets');
+        // Check if progress values look correct (avg should be 0-100)
+        const avgPrg=P.reduce((a,p)=>a+p.prg,0)/P.length;
+        if(avgPrg>100){
+          console.warn('[WT] Progress values look wrong (avg='+avgPrg.toFixed(1)+'%), keeping names/status from Sheets but using embedded progress');
+          const embMap={}; (EMB.p||[]).forEach(p=>embMap[p.id]=p);
+          P.forEach(p=>{const e=embMap[p.id];if(e){p.prg=e.prg;p.msd=e.msd;}});
+        }
         // Also fetch budget sheet
         fetchBudgetSheet().then(bgt=>{{
           if(bgt&&Object.keys(bgt).length>0){{
@@ -583,8 +616,15 @@ function rDB(){
         backgroundColor:['#1D9E75','#2563eb','#9ca3af'],borderWidth:2,borderColor:'#fff'}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:10}}}}});
 
+  // Budget per section - from project data (sum ang/rel per section)
   const secs=Object.keys(SC),ag=[],re=[];
-  secs.forEach(s=>{const ps=P.filter(p=>p.sec===s);ag.push(ps.reduce((a,p)=>a+p.ang,0)/1e9);re.push(ps.reduce((a,p)=>a+p.rel,0)/1e9);});
+  secs.forEach(s=>{
+    const ps=P.filter(p=>p.sec===s);
+    // For anggaran: use embedded pool data if live ang=0
+    let secAng=ps.reduce((a,p)=>a+p.ang,0);
+    let secRel=ps.reduce((a,p)=>a+p.rel,0);
+    ag.push(secAng/1e9);re.push(secRel/1e9);
+  });
   if(BC2)BC2.destroy();
   BC2=new Chart(document.getElementById('bc'),{type:'bar',
     data:{labels:secs.map(s=>s.substring(0,5)),datasets:[
